@@ -1,47 +1,57 @@
 package DaniQ.MarketPlace.persistence;
 
+import DaniQ.MarketPlace.domain.Product;
+import DaniQ.MarketPlace.domain.repository.ProductRepository;
 import DaniQ.MarketPlace.persistence.crud.ProductoCrudRepository;
 import DaniQ.MarketPlace.persistence.entity.Producto;
+import DaniQ.MarketPlace.persistence.mapper.ProductMapper;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 @Repository
-public class ProductoRepository {
+public class ProductoRepository implements ProductRepository {
     private ProductoCrudRepository productoCrudRepository;
+    private ProductMapper mapper;
 
-    //Crearemos un metodo para recuperar todos los obejtos de la tabla producto
-    public List<Producto> getPorductos () {
-        return (List<Producto>) productoCrudRepository.findAll();
+    @Override
+    public List<Product> getAll() {
+        List<Producto> productos = (List<Producto>) productoCrudRepository.findAll();
+        return mapper.toProducts(productos);
     }
 
-    public List<Producto> obtenerProductoPorCategoria(int idCategoria){
-        return productoCrudRepository.findByIdCategoriaOrderByNombreAsc(idCategoria);
+    @Override
+    public Optional<List<Product>> getByIdCategory(int categoryId) {
+        List<Producto> productos = productoCrudRepository.findByIdCategoriaOrderByNombreAsc(categoryId);
+        return Optional.of(mapper.toProducts(productos));
     }
 
-    public Optional<List<Producto>> obtenerProductosCasiAgotadosYenVenta(int cantidadStock, boolean estado){
-        return productoCrudRepository.findByCantidadStockLessThanAndEstado(cantidadStock, true);
+    @Override
+    public Optional<List<Product>> getProductEscasosAndActive(int quanty, boolean active) {
+        Optional<List<Producto>> productos = productoCrudRepository.findByCantidadStockLessThanAndEstado(quanty, true);
+        return productos.map(prods -> mapper.toProducts(prods));
     }
 
-    public List<Producto> obetenerProductosEscasos(){
-        return productoCrudRepository.findByCantidadStockIsZeroOrLessThan(1);
+    @Override
+    public List<Product> getProductEscasos() {
+        List<Producto> productos = productoCrudRepository.findByCantidadStockIsZeroOrLessThan(1);
+        return mapper.toProducts(productos);
     }
 
-    public  Optional<Producto> obtenerProducto(int idProducto){
-        return productoCrudRepository.findById(idProducto);
+    @Override
+    public Optional<Product> getProductById(int productId) {
+        Optional<Producto> productos = productoCrudRepository.findById(productId);
+        return productos.map(prods->mapper.toProduct(prods));
     }
 
-    public void creaProducto(Producto producto){
-        productoCrudRepository.save(producto);
+    @Override
+    public Product save(Product product) {
+        Producto producto = mapper.toProducto(product);
+        return mapper.toProduct(productoCrudRepository.save(producto));
     }
 
-    public void eliminarProducto(int idProducto){
-        productoCrudRepository.deleteById(idProducto);
+    @Override
+    public void delete(int productId) {
+        productoCrudRepository.deleteById(productId);
     }
-
-
-
-
-
-
 }

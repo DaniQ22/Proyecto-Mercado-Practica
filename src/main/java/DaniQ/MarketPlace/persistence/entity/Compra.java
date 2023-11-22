@@ -26,7 +26,7 @@ public class Compra {
 
     private String comentario;
 
-    private String estado;
+    private Boolean estado;
 
     //CREAR RELACION ENTRE LA TABLA CLIENTE (1:M) COMPRAS
     @ManyToOne
